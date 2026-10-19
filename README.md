@@ -1,14 +1,22 @@
 # Blossom & Oud — Wedding invitations
 
-A local recreation of the supplied invitation, with the reference artwork, animated envelope and palace, Arabic editor, and English, Arabic and French guest pages.
+A React 19 recreation of the supplied invitation, with the reference artwork, animated envelope and palace, Arabic editor, and English, Arabic and French guest pages. Vite builds the frontend; the existing Node server stores invitations and RSVPs. The music control uses Lucide React's `Pause` component.
 
 ## Start
 
-Requires Node.js 20 or newer. There are no packages to install.
+Requires Node.js 22.12 or newer. Open a terminal in this folder and install dependencies once:
+
+```powershell
+npm install
+```
+
+Start the application:
 
 ```powershell
 npm start
 ```
+
+`npm start` builds the React app and starts the local server. For development with automatic React updates, use `npm run dev` instead. Run only one of these commands at a time on port 3000. Press Ctrl+C to stop it.
 
 - Invitation: http://localhost:3000
 - Editor and RSVP dashboard: http://localhost:3000/admin
@@ -31,11 +39,25 @@ Map embeds and directions need internet access; all invitation artwork, fonts, a
 
 ```powershell
 npm run dev
+npm run build
 npm test
 ```
 
-`server.mjs` is the Node HTTP server. `public/admin.*` contains the editor. `public/invitation.*` contains the guest experience. `public/shared.mjs` contains translations and formatting helpers. Tests use temporary storage and do not change your invitations.
+Both development and the built application use the same URLs and API. The development server serves Vite and the Node API on port 3000, so the editor's preview iframe and RSVP requests stay on the same origin. `npm test` builds first, then tests validation, timezone handling, exports, API persistence, and the built routes using temporary storage. It does not change your invitations.
+
+- `src/main.jsx`: React entry point; separately loads the editor or invitation and their styles.
+- `src/admin/`: controlled editor form, live preview, invitation manager, RSVP dashboard.
+- `src/invitation/`: envelope, media, countdown, guest sections, RSVP form.
+- `src/styles/`: editor and invitation CSS, formatted for readability with the original design preserved.
+- `src/lib/`: API and browser download helpers.
+- `shared/invitation.mjs`: existing defaults, translations, names, timezone and map helpers, shared with the server.
+- `shared/exports.mjs`: calendar and RSVP CSV generation.
+- `public/assets/`: original artwork, fonts, music and videos.
+- `server.mjs`: local storage, invitation and RSVP APIs, and static file serving from `dist/`.
+- `scripts/dev.mjs`: Vite middleware and the API on one local server.
+
+Existing `data/store.json` records and `/i/:id` links remain compatible. `dist/` is generated and should not be edited or committed. The lockfile pins the tested dependency versions; use `npm ci` for a repeatable install.
 
 ## Reference assets
 
-The supplied reference was https://wedding-invitations-psi-seven.vercel.app/i/gUaJb2s. Its public artwork and media were saved locally to reproduce the requested design. Artwork source URLs are recorded in `public/assets/sources.json`; media and font source URLs are in `scripts/download-media.mjs`. Higgsfield generation was unnecessary because the original artwork was available. No original website scripts, analytics, or remote RSVP endpoints are executed.
+The supplied reference was https://wedding-invitations-psi-seven.vercel.app/i/gUaJb2s. Its public artwork and media were saved locally to reproduce the requested design. Source URLs for the retained assets are recorded in [docs/asset-sources.json](docs/asset-sources.json). No original website scripts, analytics, or remote RSVP endpoints are executed.
