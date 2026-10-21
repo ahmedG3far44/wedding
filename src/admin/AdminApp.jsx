@@ -7,6 +7,15 @@ import { InvitationManager, ResponsesDialog } from './Dialogs.jsx';
 import '../styles/admin.css';
 
 export default function AdminApp() {
+  const [authed, setAuthed] = useState(() => {
+    try {
+      return sessionStorage.getItem('wedding-admin') === 'admin:admin';
+    } catch {
+      return false;
+    }
+  });
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [config, setConfig] = useState({ ...defaults });
   const [id, setId] = useState(null);
   const [dirty, setDirty] = useState(false);
@@ -33,7 +42,7 @@ export default function AdminApp() {
     document.querySelector('meta[name="theme-color"]').content = '#f9f5ed';
     const edit = new URLSearchParams(location.search).get('edit');
     const controller = new AbortController();
-    if (edit) {
+    if (authed && edit) {
       const version = editVersion.current;
       api(`/api/invitations/${encodeURIComponent(edit)}`, { signal: controller.signal })
         .then((invitation) => {
@@ -50,9 +59,10 @@ export default function AdminApp() {
       loadingRequest.current?.abort();
       saveRequest.current?.abort();
     };
-  }, []);
+  }, [authed]);
 
   useEffect(() => {
+    if (!authed) return;
     const controller = new AbortController();
     api('/api/invitations', { signal: controller.signal })
       .then((rows) => {
@@ -63,7 +73,7 @@ export default function AdminApp() {
         if (error.name !== 'AbortError') setListError(true);
       });
     return () => controller.abort();
-  }, [listRevision]);
+  }, [listRevision, authed]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -85,6 +95,18 @@ export default function AdminApp() {
     const timer = setTimeout(() => setToast(''), 2600);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  function login(event) {
+    event.preventDefault();
+    if (username === 'admin' && password === 'admin') {
+      try {
+        sessionStorage.setItem('wedding-admin', 'admin:admin');
+      } catch {}
+      setAuthed(true);
+      return;
+    }
+    location.href = '/';
+  }
 
   function change(event) {
     const { name, value, checked, type } = event.target;
@@ -174,6 +196,40 @@ export default function AdminApp() {
       linkInput.current?.select();
       setToast('حدد الرابط وانسخه من الخانة');
     }
+  }
+
+  if (!authed) {
+    return (
+      <main className="admin-login">
+        <form onSubmit={login}>
+          <a className="brand" href="/">
+            ميثاق <span>MITHAQ</span>
+          </a>
+          <h1>دخول الإدارة</h1>
+          <label htmlFor="admin-username">اسم المستخدم</label>
+          <input
+            id="admin-username"
+            name="username"
+            autoComplete="username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            required
+            autoFocus
+          />
+          <label htmlFor="admin-password">كلمة المرور</label>
+          <input
+            id="admin-password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+          <button type="submit">دخول</button>
+        </form>
+      </main>
+    );
   }
 
   return (

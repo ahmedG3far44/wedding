@@ -761,3 +761,53 @@ dialog::backdrop {
     scroll-behavior: auto !important;
   }
 }
+.admin-login {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+.admin-login form {
+  display: grid;
+  gap: 8px;
+  width: min(360px, 100%);
+  padding: 34px 28px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 22px 60px #09242412;
+}
+.admin-login .brand {
+  justify-self: center;
+  margin-bottom: 10px;
+}
+.admin-login h1 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 500;
+  text-align: center;
+}
+.admin-login label {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #5b6c6c;
+}
+.admin-login input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fffdf8;
+}
+.admin-login button {
+  margin-top: 14px;
+  padding: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--teal);
+  color: #fff;
+  font-weight: 600;
+}
+.admin-login button:hover {
+  filter: brightness(1.08);
+}

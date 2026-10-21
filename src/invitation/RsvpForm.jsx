@@ -18,7 +18,6 @@ function visitorId() {
 export default function RsvpForm({ invitationId, preview, translations: t, inert }) {
   const [visitor] = useState(visitorId);
   const [name, setName] = useState('');
-  const [note, setNote] = useState('');
   const [guests, setGuests] = useState('1');
   const [attendance, setAttendance] = useState('');
   const [status, setStatus] = useState('');
@@ -46,7 +45,7 @@ export default function RsvpForm({ invitationId, preview, translations: t, inert
       await api(`/api/invitations/${encodeURIComponent(invitationId)}/responses`, {
         ...jsonRequest('POST', {
           name: name.trim(),
-          note: note.trim(),
+          note: '',
           guests: Number(guests),
           attendance,
           visitor,
@@ -112,15 +111,6 @@ export default function RsvpForm({ invitationId, preview, translations: t, inert
               ))}
             </select>
           </div>
-          <label htmlFor="guest-note">{t.note}</label>
-          <textarea
-            id="guest-note"
-            name="note"
-            rows={2}
-            maxLength={1000}
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-          />
           <p id="rsvp-status" className="form-status" role="status">
             {status}
           </p>

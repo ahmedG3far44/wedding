@@ -117,7 +117,9 @@ test('the Vercel function answers the invitation and RSVP routes', async (t) => 
   const seeded = JSON.parse(list.body).map((invitation) => invitation.id);
   assert.ok(Array.isArray(seeded));
   assert.ok(seeded.includes('demo'), 'the bundled store seeds the function');
-  assert.ok(seeded.includes('2a6f737d'), 'existing invitations are seeded');
+  const source = JSON.parse(await fs.readFile(path.join(root, 'data', 'store.json'), 'utf8'));
+  for (const id of Object.keys(source.invitations))
+    assert.ok(seeded.includes(id), id + ' is seeded');
 
   const created = await callApi('POST', '/api/invitations', { ...defaults, groom: 'Groom' });
   assert.equal(created.statusCode, 201);
