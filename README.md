@@ -1,6 +1,6 @@
 # Blossom & Oud — Wedding invitations
 
-A React 19 recreation of the supplied invitation, with the reference artwork, animated envelope and palace, Arabic editor, and English, Arabic and French guest pages. Vite builds the frontend; the existing Node server stores invitations and RSVPs. The music control uses Lucide React's `Pause` component.
+A React 19 invitation with an ivory satin and gold-edged glass theme, a monogram-first animated story inspired by the supplied video, an Arabic editor, and English, Arabic and French guest pages. Vite builds the frontend; the Node server stores invitations and RSVPs.
 
 ## Start
 
@@ -23,9 +23,11 @@ npm start
 - Screenshot-compatible editor route: http://localhost:3000/create/blossom-oud
 - Reference-compatible sample: http://localhost:3000/i/gUaJb2s
 
-The editor supports creating multiple invitations, editing saved invitations, live preview, wedding or engagement, three languages, names, venue, date, whole-hour schedule, event timezone, optional sections, custom greeting and dress-code text. Save an invitation to obtain its individual `/i/:id` URL. Use **دعواتي** to open earlier invitations and their responses.
+The editor supports creating multiple invitations, editing saved invitations, live preview, wedding or engagement, three languages, names, venue, date, hour-and-minute schedule, event timezone, optional sections, custom greeting and dress-code text. The ceremony time is optional; leave it blank for a three-event schedule. Save an invitation to obtain its individual `/i/:id` URL. Use **دعواتي** to open earlier invitations and their responses.
 
-Guest pages include animated envelope opening, music playback, countdown, calendar download, schedule, venue artwork, dress code, Google Maps and RSVP. Responses persist on the server; the same browser can update its response. The dashboard totals attending guests and exports CSV.
+Guest pages include animated envelope opening, six scenes with staggered text reveals and fades, pause/previous/next/replay controls, music playback, countdown, calendar download, schedule, dress code, Google Maps and RSVP. The final scene stays visible. A details link leads directly to the full readable invitation and guest actions without waiting for the story. Reduced motion disables autoplay and decorative animation; the scene controls remain available. Responses persist on the server; the same browser can update its response. The dashboard totals attending guests and exports CSV.
+
+New invitations default to المهندس أسامة and الدكتورة صفاء, 14 November 2026, قصر بصمات للاحتفالات in Riyadh, with reception at 20:30, dinner at 21:30, and celebration at 22:30 in `Asia/Riyadh`. Saved invitations retain their own details.
 
 ## Storage and scope
 
@@ -48,7 +50,7 @@ Both development and the built application use the same URLs and API. The develo
 - `src/main.jsx`: React entry point; separately loads the editor or invitation and their styles.
 - `src/admin/`: controlled editor form, live preview, invitation manager, RSVP dashboard.
 - `src/invitation/`: envelope, media, countdown, guest sections, RSVP form.
-- `src/styles/`: editor and invitation CSS, formatted for readability with the original design preserved.
+- `src/styles/`: separate editor and invitation styles.
 - `src/lib/`: API and browser download helpers.
 - `shared/invitation.mjs`: existing defaults, translations, names, timezone and map helpers, shared with the server.
 - `shared/exports.mjs`: calendar and RSVP CSV generation.
@@ -61,3 +63,5 @@ Existing `data/store.json` records and `/i/:id` links remain compatible. `dist/`
 ## Reference assets
 
 The supplied reference was https://wedding-invitations-psi-seven.vercel.app/i/gUaJb2s. Its public artwork and media were saved locally to reproduce the requested design. Source URLs for the retained assets are recorded in [docs/asset-sources.json](docs/asset-sources.json). No original website scripts, analytics, or remote RSVP endpoints are executed.
+
+The updated design follows `public/assets/reference video.mp4` after its opening. The monogram uses `public/assets/monogram-gold-hq.png`, a 1024 × 1536 transparent gold restoration based on the original `logo.jpeg`, which is retained. Its prompt is documented in [docs/monogram-artwork.md](docs/monogram-artwork.md). The background and its generation prompt are documented in [docs/ivory-glass-artwork.md](docs/ivory-glass-artwork.md).

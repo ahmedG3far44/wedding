@@ -6,20 +6,25 @@ import path from 'node:path';
 import { createServer, validateInvitation } from '../server.mjs';
 import { defaults, eventInstant, mapLinks } from '../shared/invitation.mjs';
 test('Invitation validation and timezone conversion', () => {
-  assert.equal(validateInvitation({ ...defaults }).bride, 'Amira');
+  assert.equal(validateInvitation({ ...defaults }).brideAr, 'الدكتورة صفاء');
+  assert.equal(validateInvitation({ ...defaults, reception: '20:30' }).reception, '20:30');
+  assert.equal(validateInvitation({ ...defaults, ceremony: '' }).ceremony, '');
+  assert.equal(validateInvitation({ ...defaults, ceremony: '21:15' }).ceremony, '21:15');
   for (const changes of [
     { date: '2027-02-30' },
     { reception: '25:00' },
-    { reception: '16:30' },
+    { reception: '16:60' },
+    { reception: '' },
+    { ceremony: '24:30' },
     { map: 'javascript:alert(1)' },
     { groom: '' },
     { language: 'xx' },
     { timezone: 'invalid' },
   ])
     assert.throws(() => validateInvitation({ ...defaults, ...changes }));
-  assert.equal(eventInstant(defaults).toISOString(), '2027-02-19T14:00:00.000Z');
+  assert.equal(eventInstant(defaults).toISOString(), '2026-11-14T17:30:00.000Z');
   assert.equal(
-    eventInstant({ ...defaults, date: '2027-07-19' }).toISOString(),
+    eventInstant({ ...defaults, date: '2027-07-19', timezone: 'Africa/Cairo', reception: '16:00' }).toISOString(),
     '2027-07-19T13:00:00.000Z',
   );
   assert.match(

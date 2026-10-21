@@ -13,6 +13,8 @@ const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
   '.png': 'image/png',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
   '.mp4': 'video/mp4',
   '.mp3': 'audio/mpeg',
   '.ttf': 'font/ttf',
@@ -42,8 +44,10 @@ export function validateInvitation(input) {
     new Date(c.date).toISOString().slice(0, 10) !== c.date
   )
     throw Error('Please choose a valid date');
-  for (const k of ['reception', 'ceremony', 'dinner', 'party'])
-    if (!/^([01]\d|2[0-3]):00$/.test(c[k])) throw Error('Choose a whole hour');
+  for (const k of ['reception', 'ceremony', 'dinner', 'party']) {
+    if (k === 'ceremony' && !c[k]) continue;
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(c[k])) throw Error('Choose a valid time');
+  }
   try {
     new Intl.DateTimeFormat('en', { timeZone: c.timezone });
   } catch {

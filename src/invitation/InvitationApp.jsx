@@ -27,7 +27,7 @@ export default function InvitationApp() {
             dateText(config);
             eventInstant(config);
             for (const field of ['reception', 'ceremony', 'dinner', 'party'])
-              timeText(config, config[field]);
+              if (config[field]) timeText(config, config[field]);
             setDraft((previous) => ({
               config,
               showEnvelope: false,

@@ -4,37 +4,7 @@ import { dateText, mapLinks, names, timeText, words } from '../../shared/invitat
 import Countdown from './Countdown.jsx';
 import RsvpForm from './RsvpForm.jsx';
 import { Decoration, Divider } from './Decorations.jsx';
-
-function BackgroundVideo({ className, src, label }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const video = ref.current;
-    const motion = matchMedia('(prefers-reduced-motion: reduce)');
-    function update() {
-      video.muted = true;
-      if (motion.matches) video.pause();
-      else video.play().catch(() => {});
-    }
-    update();
-    motion.addEventListener('change', update);
-    return () => {
-      motion.removeEventListener('change', update);
-      video.pause();
-    };
-  }, []);
-  return (
-    <video
-      ref={ref}
-      className={className}
-      src={src}
-      muted
-      loop
-      playsInline
-      aria-label={label}
-      aria-hidden={label ? undefined : true}
-    />
-  );
-}
+import InvitationStory, { Monogram } from './InvitationStory.jsx';
 
 export default function Invitation({ config: c, invitationId, preview, showEnvelope }) {
   const t = words[c.language] || words.en;
@@ -51,6 +21,7 @@ export default function Invitation({ config: c, invitationId, preview, showEnvel
     document.documentElement.lang = c.language;
     document.documentElement.dir = c.language === 'ar' ? 'rtl' : 'ltr';
     document.title = `${groom} ${t.and} ${bride}`;
+    document.querySelector('meta[name="theme-color"]').content = '#eee5d9';
   }, [c.language, groom, bride, t.and]);
 
   useEffect(() => {
@@ -84,32 +55,13 @@ export default function Invitation({ config: c, invitationId, preview, showEnvel
 
   return (
     <main id="invitation">
-      <div className="sparkles" />
-      <BackgroundVideo className="shimmer" src="/assets/shimmer.mp4" />
       {preview && <div className="preview-badge">LIVE PREVIEW</div>}
-      <section className="hero" inert={inert}>
-        <BackgroundVideo
-          className="hero-video"
-          src="/assets/hero.mp4"
-          label="An ornate palace with golden curtains and a chandelier"
-        />
-        <div className="hero-names">
-          {/* <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Quo distinctio nulla deserunt dignissimos rem voluptatum accusamus modi est sunt culpa doloribus suscipit quas ducimus ipsum nesciunt, nihil saepe harum error.</p> */}
-          <h1 ref={heading} tabIndex={-1}>
-            {groom}
-            <small>{t.and}</small>
-            {bride}
-          </h1>
-          <p className="hero-date">{dateText(c)}</p>
-          <p className="hero-time">{timeText(c, c.reception)}</p>
-        </div>
-      </section>
-      <section className="invitation-card" inert={inert}>
-        <Decoration name="rings" className="bismillah" />
+      <InvitationStory config={c} started={hidden} inert={inert} />
+      <section id="invitation-details" className="invitation-card" inert={inert}>
         <Decoration name="small-icon" className="floret" />
-        <p className="card-names">
-          {groom} {t.and} {bride}
-        </p>
+        <h1 ref={heading} tabIndex={-1} className="card-names">
+          {groom}<small>{t.and}</small>{bride}
+        </h1>
         <p className='text-hero'>
           {c.greeting || (
             <>
@@ -122,9 +74,9 @@ export default function Invitation({ config: c, invitationId, preview, showEnvel
         <p>
           {t.on}
           <br />
-          {dateText(c, true)}
+          <time className="event-date" dateTime={c.date}>{dateText(c, true)}</time>
           <br />
-          {timeText(c, c.reception)}
+          <time className="event-time">{timeText(c, c.reception)}</time>
         </p>
         <p>
           {t.at} {c.venue}
@@ -140,7 +92,7 @@ export default function Invitation({ config: c, invitationId, preview, showEnvel
           <Divider />
           <div className="timeline-line" />
           <div className="timeline">
-            {['reception', 'ceremony', 'dinner', 'party'].map((stage) => (
+            {['reception', 'ceremony', 'dinner', 'party'].filter(stage => c[stage]).map((stage) => (
               <Fragment key={stage}>
                 <time>{timeText(c, c[stage])}</time>
                 <Decoration name="ornament" />
@@ -160,7 +112,7 @@ export default function Invitation({ config: c, invitationId, preview, showEnvel
         <Decoration name="pin" className="floret" />
         <h3 className="venue-name">{c.venue}</h3>
         <p className="city">{c.city}</p>
-        <Decoration name="venue" className="venue-image" />
+        {c.showMap && <a className="venue-link" href={map.direct} target="_blank" rel="noopener noreferrer">{t.directions} ↗</a>}
       </section>
       {c.dressCode && (
         <section className="section" inert={inert}>
@@ -168,7 +120,7 @@ export default function Invitation({ config: c, invitationId, preview, showEnvel
           <Divider />
           <p>{t.palette}</p>
           <div className="palette">
-            {['#214c3a', '#343e51', '#b49a63', '#793841', '#484236'].map((color) => (
+            {['#ede3d3', '#d6c3a7', '#b49a63', '#8e7861', '#67584b'].map((color) => (
               <i key={color} style={{ '--swatch': color }} />
             ))}
           </div>
@@ -208,7 +160,7 @@ export default function Invitation({ config: c, invitationId, preview, showEnvel
         </section>
       )}
       <footer className="section closing" inert={inert}>
-        <Decoration name="chandelier" className="chandelier" />
+        <Monogram className="closing-monogram" />
         <h2>{t.footer}</h2>
         <Decoration name="footer-divider" className="divider" />
         <Decoration name="fine-flower" className="floret" />
@@ -236,12 +188,11 @@ export default function Invitation({ config: c, invitationId, preview, showEnvel
           </button>
         </>
       )}
-      <div className={`envelope${opened ? ' opened' : ''}`} hidden={hidden} onClick={openEnvelope}>
-        <img className="envelope-flap" src="/assets/palace.png" alt="" />
-        <button className="seal-button" aria-label={t.open}>
-          <img src="/assets/bismillah.png" alt="" />
+      <div className={`envelope${opened ? ' opened' : ''}`} hidden={hidden}>
+        <div className="envelope-flap" />
+        <button type="button" className="seal-button" aria-label={t.open} onClick={openEnvelope}>
+          <img className="open-seal" src="/assets/open_button.png" alt="" width="1512" height="1512" fetchPriority="high" />
           <span>{t.open}</span>
-          <img className="seal-divider" src="/assets/flower-line.png" alt="" />
         </button>
       </div>
     </main>

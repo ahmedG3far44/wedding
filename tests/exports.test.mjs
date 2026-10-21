@@ -7,6 +7,8 @@ test('Calendar exports preserve local event time, duration, translations and esc
   const config = {
     ...defaults,
     date: '2027-07-19',
+    timezone: 'Africa/Cairo',
+    reception: '16:00',
     venue: 'Garden, Hall; North\nFloor 2',
     city: 'Cairo',
   };
@@ -16,11 +18,17 @@ test('Calendar exports preserve local event time, duration, translations and esc
   assert.ok(calendar.includes('DTSTAMP:20261020T123000Z\r\n'));
   assert.ok(calendar.includes('DTSTART:20270719T130000Z\r\n'));
   assert.ok(calendar.includes('DTEND:20270719T180000Z\r\n'));
-  assert.ok(calendar.includes('SUMMARY:أحمد و أميرة\r\n'));
+  assert.ok(calendar.includes('SUMMARY:المهندس أسامة و الدكتورة صفاء\r\n'));
   assert.ok(calendar.includes('LOCATION:Garden\\, Hall\\; North\\nFloor 2\\, Cairo\r\n'));
   assert.ok(
-    calendarText({ ...config, language: 'fr' }, 'french').includes('SUMMARY:Ahmed & Amira\r\n'),
+    calendarText({ ...config, language: 'fr' }, 'french').includes('SUMMARY:Eng. Osama & Dr. Safaa\r\n'),
   );
+});
+
+test('Default invitation calendar uses the supplied November date and Riyadh half-hour reception', () => {
+  const calendar = calendarText(defaults, 'demo');
+  assert.ok(calendar.includes('DTSTART:20261114T173000Z\r\n'));
+  assert.ok(calendar.includes('LOCATION:قصر بصمات للاحتفالات\\, الرياض، المملكة العربية السعودية\r\n'));
 });
 
 test('RSVP CSV keeps Arabic, multiline notes, quotes and spreadsheet formula protection', () => {

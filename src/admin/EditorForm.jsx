@@ -143,21 +143,16 @@ export default function EditorForm({ config, id, saving, status, onChange, onSub
         </p>
       </fieldset>
       <fieldset>
-        <legend>جدول أوقات الحفلة (ساعة بس، من غير دقائق)</legend>
+        <legend>جدول أوقات الحفلة</legend>
         <div className="field-grid" id="time-fields">
           {Object.entries(timeLabels).map(([name, label]) => (
             <label key={name}>
               {label}
-              <select name={name} value={config[name]} onChange={onChange}>
-                {Array.from({ length: 24 }, (_, hour) => (
-                  <option key={hour} value={`${String(hour).padStart(2, '0')}:00`}>
-                    {hour % 12 || 12}:00 {hour < 12 ? 'صباحًا' : 'مساءً'}
-                  </option>
-                ))}
-              </select>
+              <input type="time" name={name} value={config[name]} onChange={onChange} required={name !== 'ceremony'} step="60" />
             </label>
           ))}
         </div>
+        <p className="field-help">وقت عقد القران اختياري — اتركه فارغًا لإخفائه من البرنامج.</p>
         <label className="timezone-label">
           التوقيت المحلي للحفلة
           <select name="timezone" value={config.timezone} onChange={onChange}>
