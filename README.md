@@ -37,6 +37,31 @@ This is a **local application**, bound to `127.0.0.1`. Local links are not acces
 
 Map embeds and directions need internet access; all invitation artwork, fonts, animation and music are stored locally. A pasted Google Maps URL is used for the directions button; the embedded map searches the venue and city. A typed address is used directly in both. Music starts after a guest opens the envelope and can be paused. Reduced motion preferences disable decorative animation.
 
+## Deployment on Vercel
+
+`vercel.json` describes the build and every route. Vite builds the frontend into `dist/`, and `api/[...path].mjs` is the serverless function that answers the API.
+
+| Route | Handled by |
+| --- | --- |
+| `/` | `dist/index.html` |
+| `/preview`, `/admin`, `/create/blossom-oud` | rewrite to `dist/index.html` |
+| `/i/:id` | rewrite to `dist/index.html` |
+| `/api/invitations` | `api/[...path].mjs` (GET, POST) |
+| `/api/invitations/:id` | `api/[...path].mjs` (GET, PUT) |
+| `/api/invitations/:id/responses` | `api/[...path].mjs` (GET, POST) |
+| `/assets/*` | `dist/assets/` |
+
+Deploy with the Vercel CLI from this folder:
+
+```powershell
+npx vercel --prod
+```
+
+Two limits of the local build apply to a public deployment:
+
+- **Storage is temporary.** The function writes the store to `/tmp/wedding/store.json` on the instance, so records disappear when the instance is recycled. Set `DATA_FILE` to a mounted persistent path, or replace `createStore` in `server.mjs` with a database client, before relying on it for real invitations.
+- **The editor is open.** `/admin` has no authentication, so anyone with the link can create and edit invitations. Add owner authentication before sharing the deployment.
+
 ## Development and verification
 
 ```powershell
@@ -56,6 +81,8 @@ Both development and the built application use the same URLs and API. The develo
 - `shared/exports.mjs`: calendar and RSVP CSV generation.
 - `public/assets/`: original artwork, fonts, music and videos.
 - `server.mjs`: local storage, invitation and RSVP APIs, and static file serving from `dist/`.
+- `api/[...path].mjs`: Vercel serverless function that reuses the same API handlers.
+- `vercel.json`: Vercel build, function, route, and header configuration.
 - `scripts/dev.mjs`: Vite middleware and the API on one local server.
 
 Existing `data/store.json` records and `/i/:id` links remain compatible. `dist/` is generated and should not be edited or committed. The lockfile pins the tested dependency versions; use `npm ci` for a repeatable install.

@@ -57,10 +57,7 @@ export function validateInvitation(input) {
     throw Error('Use a valid map address or https link');
   return c;
 }
-export async function createServer({
-  dataFile = path.join(root, 'data/store.json'),
-  frontend,
-} = {}) {
+export async function createStore({ dataFile = path.join(root, 'data/store.json') } = {}) {
   let db;
   try {
     db = JSON.parse(await fs.readFile(dataFile, 'utf8'));
@@ -84,8 +81,11 @@ export async function createServer({
     return queue;
   };
   await save();
-  const rates = new Map();
-  return http.createServer(async (req, res) => {
+  return { db, save, rates: new Map() };
+}
+
+export function createHandler({ db, save, rates, localOnly = true, frontend }) {
+  return async (req, res) => {
     const json = (status, value) => {
       res.writeHead(status, {
         'Content-Type': 'application/json; charset=utf-8',
@@ -97,9 +97,11 @@ export async function createServer({
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
     try {
-      if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host || ''))
+      if (localOnly && !/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host || ''))
         return json(403, { error: 'This app is available on localhost only.' });
-      const url = new URL(req.url, 'http://' + req.headers.host),
+      const proto = String(req.headers['x-forwarded-proto'] || 'http').split(',')[0].trim();
+      const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+      const url = new URL(req.url, proto + '://' + host),
         p = url.pathname;
       if (!['GET', 'HEAD'].includes(req.method)) {
         if (req.headers.origin !== url.origin)
@@ -108,6 +110,9 @@ export async function createServer({
           return json(415, { error: 'JSON required' });
       }
       const body = async () => {
+        // Serverless runtimes parse JSON bodies before the handler runs.
+        if (req.body !== undefined && req.body !== null)
+          return typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
         let text = '';
         for await (const chunk of req) {
           text += chunk;
@@ -247,7 +252,15 @@ export async function createServer({
         json(500, { error: 'Unable to save or load data. Please try again.' });
       }
     }
-  });
+  };
+}
+
+export async function createServer({
+  dataFile = path.join(root, 'data/store.json'),
+  frontend,
+} = {}) {
+  const { db, save, rates } = await createStore({ dataFile });
+  return http.createServer(createHandler({ db, save, rates, localOnly: true, frontend }));
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const server = await createServer();
