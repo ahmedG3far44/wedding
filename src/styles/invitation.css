@@ -37,12 +37,21 @@ html[lang='ar'] #invitation { font-family: Basmala, 'Traditional Arabic', Georgi
   height: 100vh;
   height: 100dvh;
   text-align: center;
-  background: #e9dfd1 url('/assets/ivory-glass.png') center / 100% 100% no-repeat;
+  background: #e9dfd1;
   animation-play-state: paused;
   color: #665238;
   isolation: isolate;
 }
 .invitation-story.is-running { animation-play-state: running; }
+.story-video {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
 .glass-light {
   position: absolute;
   inset: 9% 7% 15%;

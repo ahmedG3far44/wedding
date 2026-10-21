@@ -9,12 +9,16 @@ import { defaults } from '../shared/invitation.mjs';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const config = JSON.parse(await fs.readFile(path.join(root, 'vercel.json'), 'utf8'));
 
-// Vercel matches rewrite sources with path-to-regexp. Only `:name` segments are
-// used here, so a plain matcher is enough to prove the declared routes.
+// Vercel matches rewrite sources with path-to-regexp. Only `:name` and `:name*`
+// segments are used here, so a plain matcher is enough to prove the routes.
 function toRegExp(source) {
   const pattern = source
     .split('/')
-    .map((segment) => (segment.startsWith(':') ? '([^/]+)' : segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+    .map((segment) => {
+      if (!segment.startsWith(':')) return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (segment.endsWith('*')) return '([^/]+(?:/[^/]+)*)?';
+      return '([^/]+)';
+    })
     .join('/');
   return new RegExp('^' + pattern + '$');
 }
@@ -76,8 +80,26 @@ test('vercel.json declares the build, the API function, and every app route', as
     assert.ok(matched, route + ' is rewritten');
     assert.equal(matched.rewrite.destination, '/index.html');
   }
-  for (const route of ['/api/invitations', '/api/invitations/abc123', '/assets/index-abc.js']) {
-    assert.equal(matchRewrite(route), null, route + ' is left to the filesystem');
+  for (const route of [
+    '/api/invitations',
+    '/api/invitations/abc123',
+    '/api/invitations/abc123/responses',
+  ]) {
+    const matched = matchRewrite(route);
+    assert.ok(matched, route + ' reaches the function');
+    assert.equal(matched.rewrite.destination, '/api/[...path]');
+  }
+  assert.equal(matchRewrite('/assets/index-abc.js'), null, 'assets are left to the filesystem');
+});
+
+test('data/store.json ships every invitation with the full default content', async () => {
+  const store = JSON.parse(await fs.readFile(path.join(root, 'data', 'store.json'), 'utf8'));
+  const ids = Object.keys(store.invitations);
+  assert.ok(ids.includes('demo'), 'the demo invitation exists');
+  for (const id of ids) {
+    for (const key of Object.keys(defaults)) {
+      assert.ok(key in store.invitations[id], id + ' includes ' + key);
+    }
   }
 });
 
@@ -92,7 +114,10 @@ test('the Vercel function answers the invitation and RSVP routes', async (t) => 
   const list = await callApi('GET', '/api/invitations');
   assert.equal(list.statusCode, 200);
   assert.equal(list.headers['content-type'], 'application/json; charset=utf-8');
-  assert.ok(Array.isArray(JSON.parse(list.body)));
+  const seeded = JSON.parse(list.body).map((invitation) => invitation.id);
+  assert.ok(Array.isArray(seeded));
+  assert.ok(seeded.includes('demo'), 'the bundled store seeds the function');
+  assert.ok(seeded.includes('2a6f737d'), 'existing invitations are seeded');
 
   const created = await callApi('POST', '/api/invitations', { ...defaults, groom: 'Groom' });
   assert.equal(created.statusCode, 201);

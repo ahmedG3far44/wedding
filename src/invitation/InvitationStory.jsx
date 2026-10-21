@@ -70,6 +70,7 @@ export default function InvitationStory({ config: c, started, inert }) {
 
   return (
     <section className={`invitation-story${started && playing ? ' is-running' : ''}`} inert={inert} aria-label={`${groom} ${t.and} ${bride}`}>
+      <video className="story-video" src="/assets/ivory-glass.mp4" poster="/assets/ivory-glass.png" autoPlay muted loop playsInline aria-hidden="true" tabIndex={-1} />
       <div className="glass-light" aria-hidden="true" />
       <div key={scene} className={`story-scene scene-${scene}${last ? ' is-last' : ''}`} style={{ '--duration': `${durations[scene]}ms` }} onAnimationEnd={advance} data-scene={scene}>
         {scene === 0 && <>

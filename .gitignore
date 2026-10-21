@@ -1,4 +1,5 @@
 data/*.json
+!data/store.json
 data/*.tmp
 node_modules/
 dist/
